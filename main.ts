@@ -3,11 +3,11 @@ controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
         . . . . . . . . . . . . . . . . . 
         . . . . . . . . . . . . . . . . . 
         . . . . . . . . . . . . . . . . . 
-        . . . . . . . . . . . . . . . . . 
-        . . . . . . 2 2 5 2 2 . . . . . . 
-        . . . . . . 2 5 4 5 2 . . . . . . 
-        . . . . . . 2 2 2 2 2 . . . . . . 
-        . . . . . . 4 2 2 2 4 . . . . . . 
+        . . . . . . . 2 2 2 . . . . . . . 
+        . . . . . . . 2 5 2 . . . . . . . 
+        . . . . . . . 5 4 5 . . . . . . . 
+        . . . . . . . 2 2 2 . . . . . . . 
+        . . . . . . . 2 2 2 . . . . . . . 
         . . . . . . . 4 2 4 . . . . . . . 
         . . . . . . . . 2 . . . . . . . . 
         . . . . . . . . 2 . . . . . . . . 
@@ -16,11 +16,24 @@ controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
         . . . . . . . . . . . . . . . . . 
         . . . . . . . . . . . . . . . . . 
         . . . . . . . . . . . . . . . . . 
-        `, mainSpacecraft, 0, -80)
+        `, mainSpacecraft, 0, -100)
 })
+// Este código se ejecuta cuando una nave enemiga es impactada por un projectil de la nave principal.
+sprites.onOverlap(SpriteKind.Projectile, SpriteKind.Enemy, function (sprite, otherSprite) {
+    sprites.destroy(otherSprite)
+    sprites.destroy(sprite, effects.confetti, 200)
+    info.changeScoreBy(1)
+})
+// El código de este bloque se ejecuta en el momento en que la nave principal tiene contacto con una nave enemiga.
+sprites.onOverlap(SpriteKind.Player, SpriteKind.Enemy, function (sprite, otherSprite) {
+    sprites.destroy(otherSprite)
+    info.changeLifeBy(-1)
+})
+let enemySpacecraft: Sprite = null
 let laser: Sprite = null
 let mainSpacecraft: Sprite = null
 info.setLife(5)
+info.setScore(0)
 scene.setBackgroundImage(img`
     ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
     ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
@@ -161,5 +174,33 @@ mainSpacecraft = sprites.create(img`
     1 1 . . . . . 2 5 2 . . . . . 1 1 
     4 . . . . . . . 4 . . . . . . . 4 
     `, SpriteKind.Player)
+mainSpacecraft.setPosition(80, scene.screenHeight() - 10)
 mainSpacecraft.setStayInScreen(true)
-controller.moveSprite(mainSpacecraft, 75, 50)
+controller.moveSprite(mainSpacecraft, 100, 75)
+game.onUpdateInterval(2000, function () {
+    enemySpacecraft = sprites.create(img`
+        . 2 . 2 . . 5 5 4 5 5 . . 2 . 2 . 
+        . 2 . 2 . . 5 4 4 4 5 . . 2 . 2 . 
+        . 2 . 2 2 2 2 2 2 2 2 2 2 2 . 2 . 
+        . 2 2 2 2 2 4 4 4 4 4 2 2 2 2 2 . 
+        . 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 . 
+        . . . . . . 4 4 4 4 4 . . . . . . 
+        . . . . . . 2 2 2 2 2 . . . . . . 
+        . . . . . . 4 4 4 4 4 . . . . . . 
+        . . . . . . 2 2 2 2 2 . . . . . . 
+        . 2 2 2 2 2 2 2 f 2 2 2 2 2 2 2 . 
+        . 2 2 2 5 2 2 2 f 2 2 2 5 2 2 2 . 
+        . 2 . 2 2 2 2 2 f 2 2 2 2 2 . 2 . 
+        . 2 . 2 . . 5 2 f 2 5 . . 2 . 2 . 
+        . 2 . 2 . . 2 2 2 2 2 . . 2 . 2 . 
+        . 2 . 2 . . 2 . . . 2 . . 2 . 2 . 
+        . 2 . 2 . . . . . . . . . 2 . 2 . 
+        `, SpriteKind.Enemy)
+    enemySpacecraft.setPosition(randint(0, scene.screenWidth()), 0)
+    enemySpacecraft.setVelocity(0, 33)
+})
+forever(function () {
+    if (info.score() == 20) {
+        game.gameOver(true)
+    }
+})
